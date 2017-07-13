@@ -24,7 +24,7 @@ transitions (l, r) (capacityLeft, capacityRight) = emptyLeft ++ fillLeft ++ empt
 		| l < capacityLeft = [(capacityLeft, r)]
 		| otherwise = []
 	fillRight
-		| l < capacityRight = [(l, capacityRight)]
+		| r < capacityRight = [(l, capacityRight)]
 		| otherwise = []
 	transferToLeft
 		| r > 0 && l < capacityLeft = [(min (l + r) capacityLeft, l + r - min (l + r) capacityLeft)]
