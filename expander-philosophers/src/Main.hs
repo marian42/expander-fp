@@ -13,7 +13,8 @@ main = do
   args <- getArgs
   let count = getProcesses args
 
-  putStrLn "specs: philosophers"
+  putStrLn "specs: modal"
+  putStrLn "constructs: t e"
   putStrLn "axioms:"
 
   putStrLn $ "start == " ++ toString 0 count

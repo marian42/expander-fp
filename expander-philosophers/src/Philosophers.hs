@@ -50,9 +50,12 @@ buildSystem :: Int -> System
 buildSystem count = evalState (nextState count) startState
 
 toString :: Status -> Int -> String
-toString status count | count > 1 = toString status (count - 1) ++ " " ++ if isEating status (count - 1) then "E" else "T"
-toString satus 1 = if isEating satus 0 then "E" else "T"
-toString status count | count < 1 = "err"
+toString status count = "(" ++ toStringRecursive status count ++ ")"
+
+toStringRecursive :: Status -> Int -> String
+toStringRecursive status count | count > 1 = toStringRecursive status (count - 1) ++ ", " ++ if isEating status (count - 1) then "e" else "t"
+toStringRecursive satus 1 = if isEating satus 0 then "e" else "t"
+toStringRecursive status count | count < 1 = "err"
 
 writeSystem :: System -> Int -> ListT IO ()
 writeSystem system count = do
