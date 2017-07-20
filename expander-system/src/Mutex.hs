@@ -19,13 +19,8 @@ toTuple status = (toList $ idle $ status, wait status, maybeToList $ critical $ 
     where maybeToList (Just x) = [x]
           maybeToList Nothing = []
 
-instance Show Status where
-    show = show . toTuple
-
--- A system of statuses with transitions from a status A to a status B if B can be reached directly from A.
-type MutexSystem = TransitionSystem Status
-
 instance SystemNode Status () [Id] where
+    toString status _ = show . toTuple $ status
     first processes = Status { idle = fromList processes, wait = [], critical = Nothing }
     transitions status _ = waits ++ enters ++ leaves
         where -- We move each process x from idle to the back of the waiting queue (front of the list).

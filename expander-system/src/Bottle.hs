@@ -2,15 +2,12 @@
 
 module Bottle where
 
-import Data.Map.Strict (Map)
-import qualified Data.Map.Strict as Map
-
 import TransitionSystem
 
 type BottleState = (Int, Int)
-type BottleSystem = Map BottleState [BottleState]
 
 instance SystemNode BottleState BottleState () where
+    toString state _ = show state
     first _ = (0, 0)
     transitions (l, r) (capacityLeft, capacityRight) = emptyLeft ++ fillLeft ++ emptyRight ++ fillRight ++ transferToLeft ++ transferToRight
       where

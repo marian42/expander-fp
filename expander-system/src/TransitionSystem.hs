@@ -17,7 +17,10 @@ type TransitionSystem a = Map a [a]
 -- a is the type of the node value of the system.
 -- b is a user-data type that is carried as a constant throughout the computation.
 -- s is the type of the starting configuration that computes the first node.
-class (Show a, Eq a, Ord a) => SystemNode a b s | a -> b, a -> s where
+class (Eq a, Ord a) => SystemNode a b s | a -> b, a -> s where
+    -- Creates a String version of the node value, used for writing the system to the standard output.
+    toString :: a -> b -> String
+
     -- The first node of the transition system.
     first :: s -> a
 
@@ -53,29 +56,30 @@ buildSystem start sdata cdata = evalState (nextState cdata) (startState start)
 -- There is a line
 --      a -> b
 -- for each transition from node a to node b.
-writeSystem :: SystemNode a b s => TransitionSystem a -> ListT IO ()
-writeSystem system = do
+writeSystem :: SystemNode a b s => TransitionSystem a -> b -> ListT IO ()
+writeSystem system cdata = do
     let kvs = Map.assocs system
     (node, ts) <- ListT.fromFoldable $ kvs
     target <- ListT.fromFoldable $ ts
-    liftIO $ putStrLn $ "& " ++ show node ++ " -> " ++ show target
+    liftIO $ putStrLn $ "& " ++ toString node cdata ++ " -> " ++ toString target cdata
 
 -- The argument 'start' is sadly necessary until a better solution has been found
 -- so that we can specify the type variable a.
-writeSpec :: SystemNode a b s => String -> a -> s -> b -> IO ()
-writeSpec specName start sdata cdata = do
+writeSpec :: SystemNode a b s => String -> String -> a -> b -> s -> IO ()
+writeSpec specName extra start cdata sdata = do
     -- Write the header text.
     putStrLn ("specs: " ++ specName)
+    putStr extra
     putStrLn "axioms:"
 
     -- We need to define the start state so that Expander can properly work this out.
     -- Also adds some kind of first axiom, so that we don't need to treat
     -- the superfluous & added in writeSystem in a special way.
-    putStrLn $ "start == " ++ show start
+    putStrLn $ "start == " ++ toString start cdata
 
     let system = buildSystem start sdata cdata
 
     -- Write the transitions of the system.
-    ListT.toList (writeSystem system)
+    ListT.toList (writeSystem system cdata)
 
     return ()
