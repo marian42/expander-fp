@@ -27,7 +27,6 @@ type MutexSystem = TransitionSystem Status
 
 instance SystemNode Status () [Id] where
     first processes = Status { idle = fromList processes, wait = [], critical = Nothing }
-
     transitions status _ = waits ++ enters ++ leaves
         where -- We move each process x from idle to the back of the waiting queue (front of the list).
               statusWithWait id = Status { idle = delete id (idle status), wait = id:(wait status), critical = critical status }
