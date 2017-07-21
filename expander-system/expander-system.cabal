@@ -8,11 +8,22 @@ category:
 build-type:           Simple
 cabal-version:        >=1.10
 
-executable expander-system
-  main-is:              Main.hs
+library
+  exposed-modules:      TransitionSystem
+                      , Bottle
+                      , Mutex
+                      , Philosophers
   build-depends:        base >= 4.7 && < 5
                       , containers
                       , mtl
                       , list-t
   hs-source-dirs:       src
+  default-language:     Haskell2010
+
+executable expander-system
+  main-is:              expander-system.hs
+  build-depends:        base >= 4.7 && < 5
+                      , expander-system
+                      , list-t
+  hs-source-dirs:       app
   default-language:     Haskell2010

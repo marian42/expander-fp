@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Mutex where
 
@@ -19,7 +19,9 @@ toTuple status = (toList $ idle $ status, wait status, maybeToList $ critical $ 
     where maybeToList (Just x) = [x]
           maybeToList Nothing = []
 
-instance SystemNode Status () [Id] where
+instance SystemNode Status where
+    type UserData Status = ()
+    type Start Status = [Id]
     toString status _ = show . toTuple $ status
     first processes = Status { idle = fromList processes, wait = [], critical = Nothing }
     transitions status _ = waits ++ enters ++ leaves

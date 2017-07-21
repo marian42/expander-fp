@@ -1,15 +1,17 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
-
+{-# LANGUAGE TypeFamilies #-}
 module Bottle where
 
 import TransitionSystem
 
-type BottleState = (Int, Int)
+newtype BottleState = BottleState (Int, Int)
+    deriving (Show, Eq, Ord)
 
-instance SystemNode BottleState BottleState () where
+instance SystemNode BottleState where
+    type UserData BottleState = BottleState
+    type Start BottleState = ()
     toString state _ = show state
-    first _ = (0, 0)
-    transitions (l, r) (capacityLeft, capacityRight) = emptyLeft ++ fillLeft ++ emptyRight ++ fillRight ++ transferToLeft ++ transferToRight
+    first _ = BottleState (0, 0)
+    transitions (BottleState (l, r)) (BottleState (capacityLeft, capacityRight)) = map BottleState $ emptyLeft ++ fillLeft ++ emptyRight ++ fillRight ++ transferToLeft ++ transferToRight
       where
         emptyLeft
             | l > 0 = [(0, r)]
