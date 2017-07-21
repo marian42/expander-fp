@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Philosophers where
 
@@ -21,7 +21,9 @@ setEating table id shouldEat = updateTable shouldEat (isEating table id)
           updateTable False True = table - (2 ^ id)
           updateTable _ _ = table
 
-instance SystemNode Table Int () where
+instance SystemNode Int where
+    type UserData Int = Int
+    type Start Int = ()
     toString table count = "(" ++ inner ++ ")"
         where inner = intercalate ", " (map label [0..(count - 1)])
               label id = if isEating table id then "e" else "t"

@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module TransitionSystem where
 
@@ -15,28 +15,32 @@ import qualified ListT as ListT
 type TransitionSystem a = Map a [a]
 
 -- a is the type of the node value of the system.
--- b is a user-data type that is carried as a constant throughout the computation.
--- s is the type of the starting configuration that computes the first node.
-class (Eq a, Ord a) => SystemNode a b s | a -> b, a -> s where
+class (Eq a, Ord a) => SystemNode a where
+    -- UserData a is a user-data type that is carried as a constant throughout the computation. 
+    type UserData a :: *
+    
+    -- Start a is the type of the starting configuration that computes the first node.
+    type Start a :: *
+
     -- Creates a String version of the node value, used for writing the system to the standard output.
-    toString :: a -> b -> String
+    toString :: a -> UserData a -> String
 
     -- The first node of the transition system.
-    first :: s -> a
+    first :: Start a -> a
 
     -- Computes a list of nodes reached from a, given the user-data b.
-    transitions :: a -> b -> [a]
+    transitions :: a -> UserData a -> [a]
 
 -- Filters nodes so that only those are included in the list that have not been visited yet.
-unvisited :: SystemNode a b s => TransitionSystem a -> [a] -> [a]
+unvisited :: SystemNode a => TransitionSystem a -> [a] -> [a]
 unvisited system ts = filter (\node -> isNothing $ Map.lookup node system) ts
 
 -- The state that the algorithm starts with.
-startState :: SystemNode a b s => a -> (TransitionSystem a, [a])
+startState :: SystemNode a => a -> (TransitionSystem a, [a])
 startState node = (Map.empty, [node])
 
 -- Takes one state from the unvisited list and adds it to the system.
-nextState :: SystemNode a b s => b -> State (TransitionSystem a, [a]) (TransitionSystem a)
+nextState :: SystemNode a => UserData a -> State (TransitionSystem a, [a]) (TransitionSystem a)
 nextState cdata = do
     (system, nvs) <- get
     if null nvs
@@ -49,14 +53,14 @@ nextState cdata = do
 
 -- Builds a system with the given start value and constant user-data.
 -- For the argument 'start', see below.
-buildSystem :: SystemNode a b s => a -> s -> b -> TransitionSystem a
+buildSystem :: SystemNode a => a -> Start a -> UserData a -> TransitionSystem a
 buildSystem start sdata cdata = evalState (nextState cdata) (startState start)
 
 -- Writes the system to the command line.
 -- There is a line
 --      a -> b
 -- for each transition from node a to node b.
-writeSystem :: SystemNode a b s => TransitionSystem a -> b -> ListT IO ()
+writeSystem :: SystemNode a => TransitionSystem a -> UserData a -> ListT IO ()
 writeSystem system cdata = do
     let kvs = Map.assocs system
     (node, ts) <- ListT.fromFoldable $ kvs
@@ -65,7 +69,7 @@ writeSystem system cdata = do
 
 -- The argument 'start' is sadly necessary until a better solution has been found
 -- so that we can specify the type variable a.
-writeSpec :: SystemNode a b s => String -> String -> a -> b -> s -> IO ()
+writeSpec :: SystemNode a => String -> String -> a -> UserData a -> Start a -> IO ()
 writeSpec specName extra start cdata sdata = do
     -- Write the header text.
     putStrLn ("specs: " ++ specName)
